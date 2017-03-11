@@ -1,6 +1,15 @@
 import urwid
 from model import *
 
+class ItemCat(urwid.Text):
+    def __init__(self, item, *args, **kwargs):
+        super().__init__('')
+        self.item = item
+        self.item.attach(self)
+        self.update()
+
+    def update(self):
+        self.set_text(','.join(self.item.categories))
 
 class ProxyEdit(urwid.Edit):
     def __init__(self, source, *args, **kwargs):
@@ -21,82 +30,37 @@ class ProxyEdit(urwid.Edit):
         self._in_update = False
 
 
-class SectionList(urwid.SimpleFocusListWalker):
-    def __init__(self, section: Section):
+class ViewList(urwid.SimpleFocusListWalker):
+    def __init__(self, view: View) -> None:
+        for section in view.sections:
+            section.attach(self)
+
+        self.view = view
+        rows = self.draw_view(view)
+        super().__init__(rows)
+
+    def draw_view(self, view):
+        rows = []
+        for section in view.sections:
+            rows.extend(self.draw_section(section))
+            rows.append(urwid.Text(''))
+        return rows
+
+    def draw_section(self, section):
         rows = []
         for item in section.items:
             e = ProxyEdit(item)
-            e2 = ProxyEdit(item)
-            c = urwid.Columns([e, e2, urwid.Text("This is great!")])
+            if section.show_cats:
+                c = urwid.Columns([e, ItemCat(item)])
+            else:
+                c = urwid.Columns([e])
             rows.append(c)
 
-        super().__init__(rows)
-        #urwid.connect_signal(self, 'modified', self.save)
+        return rows
 
-    def save(self, widget=None, new_text=None):
-        raise Exception(widget)
-        #print(widget, new_text)
-        return
-        with open('test.txt', 'w') as f:
-            if widget and new_text:
-                f.writelines(f'{new_text}\n' if x is widget else f'{x.edit_text}\n' for x in self)
-            else:
-                f.writelines(f'{x.edit_text}\n' for x in self)
+    def update(self):
+        self[:] = self.draw_view(self.view)
 
-    def move_up(self):
-        focus = self.focus
-
-        if self.focus > 0:
-            self[focus], self[focus-1] = self[focus-1], self[focus]
-            self.focus -= 1
-
-    def move_down(self):
-        focus = self.focus
-
-        if self.focus < len(self) - 1:
-            self[focus], self[focus+1] = self[focus+1], self[focus]
-            self.focus += 1
-
-
-class SectionListBox(urwid.ListBox):
-    def __init__(self, section):
-        body = SectionList(section)
-        super().__init__(body)
-
-    def keypress(self, size, key):
-        key = super().keypress(size, key)
-
-        if key == 'shift down':
-            self.body.move_down()
-            return
-        elif key == 'shift up':
-            self.body.move_up()
-            return
-        elif key == 'f4':
-            del self.body[self.focus_position]
-        elif key != 'enter':
-            return key
-
-        name = self.focus.edit_text
-        if not name:
-            raise urwid.ExitMainLoop()
-
-        if self.focus_position == len(self.body) - 1:
-            self.body.append(urwid.Edit())
-            self.focus_position += 1
-
-class ViewList(urwid.SimpleFocusListWalker):
-    def __init__(self, view: View):
-        rows = []
-        for section in view.sections:
-            for item in section.items:
-                e = ProxyEdit(item)
-                e2 = ProxyEdit(item)
-                c = urwid.Columns([e, e2, urwid.Text("This is great!")])
-                rows.append(c)
-            rows.append(urwid.Text(''))
-
-        super().__init__(rows)
 
 class ViewListBox(urwid.ListBox):
     def __init__(self, view):
