@@ -30,10 +30,32 @@ class ProxyEdit(urwid.Edit):
         self._in_update = False
 
 
+class SectionPile(urwid.Pile):
+    def __init__(self, section):
+        self.section = section
+        section.attach(self)
+        super().__init__(self.calc_rows())
+
+    def calc_rows(self):
+        rows = []
+        for item in self.section.items:
+            e = ProxyEdit(item)
+            if self.section.show_cats:
+                c = urwid.Columns([e, ItemCat(item)])
+            else:
+                c = urwid.Columns([e])
+            rows.append(c)
+
+        return rows
+
+    def update(self):
+        self.contents = [(x,('pack', None)) for x in self.calc_rows()]
+
+
 class ViewList(urwid.SimpleFocusListWalker):
     def __init__(self, view: View) -> None:
-        for section in view.sections:
-            section.attach(self)
+        #for section in view.sections:
+        #    section.attach(self)
 
         self.view = view
         rows = self.draw_view(view)
@@ -42,21 +64,12 @@ class ViewList(urwid.SimpleFocusListWalker):
     def draw_view(self, view):
         rows = []
         for section in view.sections:
-            rows.extend(self.draw_section(section))
+            rows.append(self.draw_section(section))
             rows.append(urwid.Text(''))
         return rows
 
     def draw_section(self, section):
-        rows = []
-        for item in section.items:
-            e = ProxyEdit(item)
-            if section.show_cats:
-                c = urwid.Columns([e, ItemCat(item)])
-            else:
-                c = urwid.Columns([e])
-            rows.append(c)
-
-        return rows
+        return SectionPile(section)
 
     def update(self):
         self[:] = self.draw_view(self.view)
@@ -75,4 +88,8 @@ palette = [('I say', 'default,bold', 'default'),
 #    align='center', width=('relative', 60),
 #    valign='middle', height=('relative', 60),
 #    min_width=20, min_height=9)
+
+#class T1(urwid.ListBox):
+#    def __init__(self):
+#        body = urwid.0
 urwid.MainLoop(ViewListBox(sample_view), palette).run()

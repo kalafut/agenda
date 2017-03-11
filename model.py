@@ -68,4 +68,4 @@ items = set([
 sample_section1 = Section(items, show_cats=True)
 sample_section2 = Section(items, top_cat='line', show_cats=True)
 
-sample_view = View([sample_section1, sample_section2])
+sample_view = View([sample_section1, sample_section2]*10)
