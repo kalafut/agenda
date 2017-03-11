@@ -43,10 +43,8 @@ class Section(Source):
         self.proc()
 
     def proc(self):
-        if self.top_cat:
-            self.items = [x for x in self.item_db if self.top_cat in x.categories]
-        else:
-            self.items = self.item_db
+        self.items = [x for x in self.item_db if not self.top_cat or self.top_cat in x.categories]
+        self.items.sort(key=lambda x: x.get_text())
         self.notify()
 
     def update(self):
