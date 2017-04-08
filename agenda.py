@@ -11,6 +11,7 @@ class ItemCat(urwid.Text):
     def update(self):
         self.set_text(','.join(self.item.categories))
 
+
 class ProxyEdit(urwid.Edit):
     def __init__(self, source, *args, **kwargs):
         super().__init__('', source.get_text())
@@ -80,8 +81,7 @@ class ViewListBox(urwid.ListBox):
         body = ViewList(view)
         super().__init__(body)
 
-palette = [('I say', 'default,bold', 'default'),
-        ('bg', 'white', 'dark blue')]
+palette = [('bg', 'light gray', 'dark blue')]
 #main = urwid.Padding(ConversationListBox(), left=2, right=2)
 #main3 = urwid.AttrMap(main, 'bg')
 #top = urwid.Overlay(main3, urwid.SolidFill(u'\N{MEDIUM SHADE}'),
@@ -89,7 +89,6 @@ palette = [('I say', 'default,bold', 'default'),
 #    valign='middle', height=('relative', 60),
 #    min_width=20, min_height=9)
 
-#class T1(urwid.ListBox):
-#    def __init__(self):
-#        body = urwid.0
-urwid.MainLoop(ViewListBox(sample_view), palette).run()
+map2 = urwid.AttrMap(ViewListBox(sample_view), 'bg')
+
+urwid.MainLoop(map2, palette).run()
